@@ -1,0 +1,19 @@
+#! /bin/bash
+
+EDITOR="/usr/bin/vim"
+LINE_PARAM="+"
+
+SEPARATOR=":"
+
+if [ "x${1}" == "x" ]; then
+				${EDITOR}
+else
+				FILE=$(echo ${1%${SEPARATOR}*})
+				LINE=$(echo ${1#*${SEPARATOR}})
+				
+				if [ "x${FILE}" != "x${LINE}" ]; then
+								${EDITOR} "${LINE_PARAM}${LINE}" "${FILE}"
+				else
+								${EDITOR} "${FILE}"
+				fi
+fi
