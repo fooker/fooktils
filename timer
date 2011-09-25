@@ -1,0 +1,35 @@
+#! /bin/bash
+
+ZENITY=/usr/bin/zenity
+
+DURATION_DEFAULT="5m"
+
+QUESTION_TITLE="Timer"
+QUESTION_TEXT="Please enter a duration:"
+
+ERROR_TITLE="Timer - Error"
+
+MESSAGE_TITLE="Timer - Time is up"
+MESSAGE_TEXT="The time is up..."
+
+# Ask for the duration
+DURATION=`${ZENITY} --entry \
+								--title="${QUESTION_TITLE}" \
+								--text="${QUESTION_TEXT}" \
+								--entry-text="${DURATION_DEFAULT}"` || exit 0
+
+# Call split with given duration
+ERROR_TEXT=`sleep ${DURATION} 2>&1 1>/dev/null | grep -e "^sleep: " | sed "s|sleep: ||"`
+
+# Check if sleep was successfull
+if [ -n "${ERROR_TEXT}" ]; then
+				# Show error message
+				${ZENITY} --error \
+								--title="${ERROR_TITLE}" \
+								--text="${ERROR_TEXT}"
+else
+				# Show info message
+				${ZENITY} --info \
+								--title="${MESSAGE_TITLE}" \
+								--text="${MESSAGE_TEXT}"
+fi
