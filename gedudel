@@ -1,0 +1,16 @@
+#! /bin/bash
+
+# The playlist to play
+PLAYLIST="http://www.against-silence.com/listen.m3u"
+
+# The loader and player to use
+LOADER="/usr/bin/wget -O -"
+PLAYER="/usr/bin/mpg321 -"
+
+################################################################################
+
+# Fetch the playlist and extract the first URL
+URL=$(${LOADER} "${PLAYLIST}" | head -n 1 | tr -d '\r')
+
+# Fetch stream from URL and play it using the player
+${LOADER} "${URL}" | ${PLAYER}
