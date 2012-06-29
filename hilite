@@ -1,0 +1,9 @@
+#! /bin/bash
+
+PATTERN=$1
+INPUT=$2
+
+COLOR_SET="\\x1b[1;31m"
+COLOR_CLR="\\x1b[0m"
+
+cat ${INPUT} | sed "s/${PATTERN}/${COLOR_SET}&${COLOR_CLR}/g"
