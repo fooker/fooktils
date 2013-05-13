@@ -1,0 +1,186 @@
+#! /usr/bin/env python
+# -*- coding: UTF-8 -*-
+
+import os
+import sys
+
+import codecs
+
+import sh
+import parse
+import blessings
+
+from collections import Counter
+from compiler.ast import flatten
+
+
+
+#os.chdir('/home/fooker/Development/senchineru.bak')
+#os.chdir('/home/fooker/tmp/xyz')
+
+
+term = blessings.Terminal(force_styling = True)
+blessings.FormattingString.__call__ = lambda self, text: '%{' + self + '%}' + text + '%{' + self._normal + '%}'
+
+
+def git(cmd, *args):
+  try:
+    out = str(git.sh(cmd,
+                     _tty_out = False,
+                     _tty_in = False,
+                     *args))
+    
+    def _(pattern, multiline = False):
+      def transform_result(result):
+        if len(result.fixed) == 1 and \
+           len(result.named) == 0:
+          return result.fixed[0]
+        else:
+          return result
+        
+      if multiline:
+        return [transform_result(result)
+                for result
+                in parse.findall(pattern + '\n', out)]
+        
+      else:
+        return transform_result(parse.parse(pattern + '\n', out))
+    
+    return _
+  
+  except sh.ErrorReturnCode:
+    return lambda *args, **kwargs: None
+
+git.sh = sh.Command('git')
+
+
+commit = git('rev-parse', '--short', 'HEAD') \
+            ('{}')
+
+if not commit:
+  sys.exit(1)
+
+branch = git('symbolic-ref', 'HEAD') \
+            ('refs/heads/{}')
+
+tags = git('tag', '--points-at', 'HEAD') \
+          ('{}', multiline = True)
+
+if branch:
+  branch_remote = git('config', 'branch.%s.remote' % branch) \
+                     ('{}')
+  
+  if branch_remote:
+    branch_merge = git('config', 'branch.%s.merge' % branch) \
+                      ('{}')
+  
+  else:
+    branch_remote = 'origin'
+    branch_merge = 'refs/heads/%s' % branch
+    
+  if branch_remote == '.':
+    branch_remote_ref = branch_merge
+    
+  else:
+    branch_remote_ref = 'refs/remotes/%s/%s' % (branch_remote, branch_merge[11:])
+  
+  branch_revlist = git('rev-list', '--left-right', '%s...HEAD' % branch_remote_ref) \
+                      ('{1s}{}', multiline = True)
+  
+  if not branch_revlist:
+    branch_revlist = git('rev-list', '--left-right', '%s...HEAD' % branch_merge) \
+                        ('{1s}{}', multiline = True)
+
+  branch_behead = Counter(r.fixed[0]
+                          for r
+                          in branch_revlist)
+  branch_behind = branch_behead['>']
+  branch_ahead = branch_behead['<']
+
+
+status = Counter()
+status.update(r.fixed[0]
+              for r
+              in git('diff', '--name-status') \
+                    ('{1s}\t{}', multiline = True))
+
+status.update(r.fixed[0]
+              for r
+              in git('diff', '--name-status', '--cached') \
+                    ('{1s}\t{}', multiline = True))
+
+status.update('?'
+              for r
+              in git('ls-files', '--others', '--exclude-standard') \
+                    ('{}', multiline = True))
+
+
+sys.stdout.write(''.join(flatten([
+	'{',
+	
+  # Branch name or commit ID
+	[
+    term.blue_bold(branch),
+  ] if branch else [
+    ':',
+		term.magenta_bold(commit)
+  ],
+  
+  # Remote divergence
+	[
+    ' ',
+		[
+      '\\xE2\\x86\\x93',
+			str(branch_behind)
+    ] if branch_behind > 0 else [
+    ],
+		[
+      '\\xE2\\x86\\x91', \
+			str(branch_ahead)
+    ] if branch_ahead > 0 else [
+    ],
+  ] if branch and branch_behind > 0 or branch_ahead > 0 else [
+  ],
+
+  # Tag list
+  [ 
+    ' ',
+    '[',
+		','.join(term.bold_blue(tag) for tag in tags),
+		']'
+  ] if tags else [
+  ],
+
+	'|',
+  
+  # Status
+	[
+    [
+      term.red('\\xC3\\x97'),
+			term.bold_white(str(status['U']))
+    ] if status['U'] else [
+    ],
+
+    [
+      term.green('\\xE2\\x9A\\xAA'),
+      term.bold_white(str(status['A']))
+    ] if status['A'] else [
+    ],
+
+    [
+      term.yellow('\\xC2\\xB1'),
+      term.bold_white(str(status['M']))
+    ] if status['M'] else [
+    ],
+
+    [
+      term.cyan('\\xD9\\xAD'),
+      term.bold_white(str(status['?']))
+    ] if status['?'] else [
+    ]
+  ] if status else [
+    term.green_bold('\\xE2\\x9C\\x94')
+  ],
+  
+	'}'
+])))
