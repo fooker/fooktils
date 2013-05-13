@@ -99,12 +99,13 @@ if branch:
 
 
 status = Counter()
-status.update(r.fixed[0]
+status.update('M'
               for r
               in git('diff', '--name-status') \
-                    ('{1s}\t{}', multiline = True))
+                    ('{1s}\t{}', multiline = True)
+              if r.fixed[0] != 'U')
 
-status.update(r.fixed[0]
+status.update('A' if r.fixed[0] != 'U' else 'U'
               for r
               in git('diff', '--name-status', '--cached') \
                     ('{1s}\t{}', multiline = True))
@@ -128,7 +129,7 @@ sys.stdout.write(''.join(flatten([
   
   # Remote divergence
 	[
-    ' ',
+    '|',
 		[
       '\\xE2\\x86\\x93',
 			str(branch_behind)
@@ -143,13 +144,13 @@ sys.stdout.write(''.join(flatten([
   ],
 
   # Tag list
-  [ 
-    ' ',
-    '[',
-		','.join(term.bold_blue(tag) for tag in tags),
-		']'
-  ] if tags else [
-  ],
+#  [ 
+#    ' ',
+#    '[',
+#		','.join(term.bold_blue(tag) for tag in tags),
+#		']'
+#  ] if tags else [
+#  ],
 
 	'|',
   
