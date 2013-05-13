@@ -121,23 +121,23 @@ sys.stdout.write(''.join(flatten([
 	
   # Branch name or commit ID
 	[
-    term.blue_bold(branch),
+    term.bright_blue(branch),
   ] if branch else [
     ':',
-		term.magenta_bold(commit)
+		term.bright_magenta(commit)
   ],
   
   # Remote divergence
 	[
     '|',
 		[
-      '\\xE2\\x86\\x93',
-			str(branch_behind)
+      term.yellow('\\xE2\\x86\\x93'),
+			term.bright_white(str(branch_behind))
     ] if branch_behind > 0 else [
     ],
 		[
-      '\\xE2\\x86\\x91', \
-			str(branch_ahead)
+      term.yellow('\\xE2\\x86\\x91'),
+			term.bright_white(str(branch_ahead))
     ] if branch_ahead > 0 else [
     ],
   ] if branch and branch_behind > 0 or branch_ahead > 0 else [
@@ -158,25 +158,25 @@ sys.stdout.write(''.join(flatten([
 	[
     [
       term.red('\\xC3\\x97'),
-			term.bold_white(str(status['U']))
+			term.bright_white(str(status['U']))
     ] if status['U'] else [
     ],
 
     [
       term.green('\\xE2\\x9A\\xAA'),
-      term.bold_white(str(status['A']))
+      term.bright_white(str(status['A']))
     ] if status['A'] else [
     ],
 
     [
       term.yellow('\\xC2\\xB1'),
-      term.bold_white(str(status['M']))
+      term.bright_white(str(status['M']))
     ] if status['M'] else [
     ],
 
     [
       term.cyan('\\xD9\\xAD'),
-      term.bold_white(str(status['?']))
+      term.bright_white(str(status['?']))
     ] if status['?'] else [
     ]
   ] if status else [
