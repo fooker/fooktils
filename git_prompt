@@ -94,8 +94,8 @@ if branch:
   branch_behead = Counter(r.fixed[0]
                           for r
                           in branch_revlist)
-  branch_behind = branch_behead['>']
-  branch_ahead = branch_behead['<']
+  branch_behind = branch_behead['>'] or 0
+  branch_ahead = branch_behead['<'] or 0
 
 
 status = Counter()
@@ -140,7 +140,7 @@ sys.stdout.write(''.join(flatten([
 			term.bright_white(str(branch_ahead))
     ] if branch_ahead > 0 else [
     ],
-  ] if branch and branch_behind > 0 or branch_ahead > 0 else [
+  ] if branch and (branch_behind > 0 or branch_ahead > 0) else [
   ],
 
   # Tag list
