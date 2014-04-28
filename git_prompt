@@ -11,7 +11,6 @@ import parse
 import blessings
 
 from collections import Counter
-from compiler.ast import flatten
 
 
 
@@ -21,6 +20,13 @@ from compiler.ast import flatten
 
 term = blessings.Terminal(force_styling = True)
 blessings.FormattingString.__call__ = lambda self, text: '%{' + self + '%}' + text + '%{' + self._normal + '%}'
+
+
+def flatten(l):
+  if isinstance(l, list):
+    return [i for il in l for i in flatten(il)]
+  else:
+    return [l]
 
 
 def git(cmd, *args):
@@ -117,27 +123,27 @@ status.update('?'
 
 
 sys.stdout.write(''.join(flatten([
-	'{',
-	
+  '{',
+  
   # Branch name or commit ID
-	[
+  [
     term.bright_blue(branch),
   ] if branch else [
     ':',
-		term.bright_magenta(commit)
+    term.bright_magenta(commit)
   ],
   
   # Remote divergence
-	[
+  [
     '|',
-		[
-      term.yellow('\\xE2\\x86\\x93'),
-			term.bright_white(str(branch_behind))
+    [
+      term.yellow('\\xE2\\x86\\x91'),
+      term.bright_white(str(branch_behind))
     ] if branch_behind > 0 else [
     ],
-		[
-      term.yellow('\\xE2\\x86\\x91'),
-			term.bright_white(str(branch_ahead))
+    [
+      term.yellow('\\xE2\\x86\\x93'),
+      term.bright_white(str(branch_ahead))
     ] if branch_ahead > 0 else [
     ],
   ] if branch and (branch_behind > 0 or branch_ahead > 0) else [
@@ -147,18 +153,18 @@ sys.stdout.write(''.join(flatten([
 #  [ 
 #    ' ',
 #    '[',
-#		','.join(term.bold_blue(tag) for tag in tags),
-#		']'
+#    ','.join(term.bold_blue(tag) for tag in tags),
+#    ']'
 #  ] if tags else [
 #  ],
 
-	'|',
+  '|',
   
   # Status
-	[
+  [
     [
       term.red('\\xC3\\x97'),
-			term.bright_white(str(status['U']))
+      term.bright_white(str(status['U']))
     ] if status['U'] else [
     ],
 
@@ -183,5 +189,5 @@ sys.stdout.write(''.join(flatten([
     term.green_bold('\\xE2\\x9C\\x94')
   ],
   
-	'}'
+  '}'
 ])))
