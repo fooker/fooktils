@@ -1,4 +1,0 @@
-#! /bin/bash
-
-PKG=${1}; shift
-GIT_SSH=/usr/bin/ssh /opt/eclipse/${PKG}/eclipse $*

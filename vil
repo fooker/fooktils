@@ -1,19 +1,18 @@
 #! /bin/bash
 
-EDITOR="/usr/bin/vim"
-LINE_PARAM="+"
+[[ -z "${EDITOR}" ]] && EDITOR="/usr/bin/vim"
 
 SEPARATOR=":"
 
 if [ "x${1}" == "x" ]; then
-				${EDITOR}
+	${EDITOR}
 else
-				FILE=$(echo ${1%${SEPARATOR}*})
-				LINE=$(echo ${1#*${SEPARATOR}})
-				
-				if [ "x${FILE}" != "x${LINE}" ]; then
-								${EDITOR} "${LINE_PARAM}${LINE}" "${FILE}"
-				else
-								${EDITOR} "${FILE}"
-				fi
+	FILE=$(echo ${1%${SEPARATOR}*})
+	LINE=$(echo ${1#*${SEPARATOR}})
+	
+	if [ "x${FILE}" != "x${LINE}" ]; then
+		${EDITOR} "${FILE}" "+${LINE}"
+	else
+		${EDITOR} "${FILE}"
+	fi
 fi

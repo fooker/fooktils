@@ -1,8 +1,0 @@
-#! /bin/bash
-iptables -t nat -A OUTPUT -d localhost -j RETURN
-iptables -t nat -A OUTPUT -m owner --uid-owner 106 -j RETURN
-
-iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 53
-
-iptables -t nat -A OUTPUT -j REDIRECT -p tcp --to-ports 9040
-iptables -t nat -A OUTPUT -j REDIRECT -p udp --to-ports 9040

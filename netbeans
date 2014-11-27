@@ -1,4 +1,0 @@
-#! /bin/bash
-
-PKG=${1}; shift
-/opt/netbeans/${PKG}/bin/netbeans --jdkhome `java-config --jdk-home` $*
