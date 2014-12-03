@@ -66,6 +66,10 @@ function __git_prompt() {
 	if [[ "${REMOTE_DIFF[1]}" -gt 0 ||
 		  "${REMOTE_DIFF[2]}" -gt 0 ]]; then
 		echo -n '|'
+		
+		if [[ -n "${REMOTE_BRANCH}" ]]; then
+			echo -n "%{%F{cyan}%B%}$REMOTE_BRANCH%{%b%f%}"
+		fi
 
 		if [[ "${REMOTE_DIFF[1]}" -gt 0 ]]; then
 			echo -n -e "%{%F{yellow}%}\\xE2\\x86\\x91%{%B%}${REMOTE_DIFF[1]}%{%b%f%}"
