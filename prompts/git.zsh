@@ -71,12 +71,12 @@ function __git_prompt() {
 			echo -n "%{%F{cyan}%B%}$REMOTE_BRANCH%{%b%f%}"
 		fi
 
-		if [[ "${REMOTE_DIFF[1]}" -gt 0 ]]; then
-			echo -n -e "%{%F{yellow}%}\\xE2\\x86\\x91%{%B%}${REMOTE_DIFF[1]}%{%b%f%}"
+		if [[ "${REMOTE_DIFF[2]}" -gt 0 ]]; then
+			echo -n -e "%{%F{yellow}%}\\xE2\\x86\\x91%{%B%}${REMOTE_DIFF[2]}%{%b%f%}"
 		fi
 
-		if [[ "${REMOTE_DIFF[2]}" -gt 0 ]]; then
-			echo -n -e "%{%F{yellow}%}\\xE2\\x86\\x93%{%B%}${REMOTE_DIFF[2]}%{%b%f%}"
+		if [[ "${REMOTE_DIFF[1]}" -gt 0 ]]; then
+			echo -n -e "%{%F{yellow}%}\\xE2\\x86\\x93%{%B%}${REMOTE_DIFF[1]}%{%b%f%}"
 		fi
 	fi
 
