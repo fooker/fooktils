@@ -58,9 +58,9 @@ function __git_prompt() {
 	echo -n '{'
 
 	if [[ -n "${BRANCH}" ]]; then
-		echo -n "%{%F{blue}%B%}$BRANCH%{%b%f%}"
+		echo -n "%{%F{blue}%B%}${BRANCH}%{%b%f%}"
 	else
-		echo -n "%{%F{magenta}%B%}$COMMIT%{%b%f}"
+		echo -n "%{%F{magenta}%B%}:${COMMIT}%{%b%f%}"
 	fi
 
 	if [[ "${REMOTE_DIFF[1]}" -gt 0 ||
