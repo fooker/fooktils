@@ -32,7 +32,7 @@ function __git_prompt() {
 	STATS_UNTRACKED=0
 	STATS_CONFLICTS=0
 
-	while read STAT_LINE; do
+	while IFS='' read STAT_LINE; do
 		STAT="${STAT_LINE[0,2]}"
 
 		if [[ "${STAT}" =~ '( |M|A|R|C)(M|D)' ]]; then
@@ -63,35 +63,36 @@ function __git_prompt() {
 		echo -n "%{%F{magenta}%B%}$COMMIT%{%b%f}"
 	fi
 
-	if [[ "${REMOTE_DIFF[0]}" > 0 &&
-		  "${REMOTE_DIFF[1]}" > 0 ]]; then
+	if [[ "${REMOTE_DIFF[1]}" -gt 0 ||
+		  "${REMOTE_DIFF[2]}" -gt 0 ]]; then
 		echo -n '|'
 
-		if [[ "${REMOTE_DIFF[0]}" > 0 ]]; then
-			echo -n -e "%{%F{yellow}%}\\xE2\\x86\\x91%{%B%}${REMOTE_DIFF[0]}%{%b%f%}"
+		if [[ "${REMOTE_DIFF[1]}" -gt 0 ]]; then
+			echo -n -e "%{%F{yellow}%}\\xE2\\x86\\x91%{%B%}${REMOTE_DIFF[1]}%{%b%f%}"
 		fi
-		if [[ "${REMOTE_DIFF[1]}" > 0 ]]; then
-			echo -n -e "%{%F{yellow}%}\\xE2\\x86\\x93%{%B%}${REMOTE_DIFF[1]}%{%b%f%}"
+
+		if [[ "${REMOTE_DIFF[2]}" -gt 0 ]]; then
+			echo -n -e "%{%F{yellow}%}\\xE2\\x86\\x93%{%B%}${REMOTE_DIFF[2]}%{%b%f%}"
 		fi
 	fi
 
 	echo -n '|'
 
 	if [[ -n "${STATS_DIRTY}" ]]; then
-		
-		if [[ "${STATS_MODIFIED}" > 0 ]]; then
+
+		if [[ "${STATS_MODIFIED}" -gt 0 ]]; then
 			echo -n -e "%{%F{green}%}\\xC2\\xB1%{%B%}${STATS_MODIFIED}%{%b%f%}"
 		fi
 
-		if [[ "${STATS_INDEXED}" > 0 ]]; then
+		if [[ "${STATS_INDEXED}" -gt 0 ]]; then
 			echo -n -e "%{%F{yellow}%}\\xE2\\x9A\\xAA%{%B%}${STATS_INDEXED}%{%b%f%}"
 		fi
 
-		if [[ "${STATS_UNTRACKED}" > 0 ]]; then
+		if [[ "${STATS_UNTRACKED}" -gt 0 ]]; then
 			echo -n -e "%{%F{cyan}%}\\xD9\\xAD%{%B%}${STATS_UNTRACKED}%{%b%f%}"
 		fi
 
-		if [[ "${STATS_CONFLICTS}" > 0 ]]; then
+		if [[ "${STATS_CONFLICTS}" -gt 0 ]]; then
 			echo -n -e "%{%F{red}%}\\xC3\\x97%{%B%}${STATS_CONFLICTS}%{%b%f%}"
 		fi
 
