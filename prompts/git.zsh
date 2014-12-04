@@ -63,8 +63,7 @@ function __git_prompt() {
 		echo -n "%{%F{magenta}%B%}:${COMMIT}%{%b%f%}"
 	fi
 
-	if [[ "${REMOTE_DIFF[1]}" -gt 0 ||
-		  "${REMOTE_DIFF[2]}" -gt 0 ]]; then
+	if [[ -n "${REMOTE_BRANCH}" ]]; then
 		echo -n '|'
 		
 		if [[ -n "${REMOTE_BRANCH}" ]]; then
