@@ -1,0 +1,117 @@
+#! /bin/bash -e
+
+# Parse arguments
+while getopts 'dxh' OPTFLAG; do
+	case "${OPTFLAG}" in
+		'x')
+			PURGE='yes'
+			;;
+
+		'd')
+			DEBUG='yes'
+			;;
+
+		*)
+			cat <<- EOF
+				Usage: ${0##*/} [-x]
+				Deploy the opennms build from the current source tree to the system.
+
+				    -h      Display this help and exit
+				    -x      Purge the the database before deployment
+			EOF
+	esac
+done
+
+# Ensure we are running as root
+if [[ "${USER}" != "root" ]]; then
+	exec sudo "${0}" "${*}"
+fi
+
+[[ "${PURGE}" == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mPurge database before installation\033[0m"
+[[ "${DEBUG}" == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mEnable debug port\033[0m"
+# Define the target
+TARGET=/opt/opennms
+
+# Check if we have a valid source
+SOURCE=$(find . \
+	-maxdepth 2 \
+	-type d \
+	-path "./target/opennms-*")
+if [[ -z "${SOURCE}" ]]; then
+	echo -e "\033[0;31mNo valid opennms target found\033[0m" >&2
+	exit 1
+fi
+
+# Make the source path absolute
+SOURCE="$(realpath "${SOURCE}")"
+
+echo -e "\033[0;35m====> \033[1;37mDeploying OpenNMS from '\033[1;34m${SOURCE}\033[1;37m' to '\033[1;34m${TARGET}\033[1;37m'\033[0m"
+
+# Try to stop existing target if not empty
+if [[ -x "${TARGET}/bin/opennms" && -f "${TARGET}/etc/configured" ]]; then
+	echo -e "\033[0;37m==> \033[1;37mStop existing OpenNMS instance\033[0m"
+	${TARGET}/bin/opennms -v stop
+fi
+
+# Clean existing deployment
+echo -e "\033[0;37m==> \033[1;37mCleane existing deployment\033[0m"
+find "${TARGET}" \
+	-depth \
+	-mindepth 1 \
+	-delete
+
+# Purge the database
+if [[ "${PURGE}" == 'yes' ]]; then
+	echo -e "\033[0;37m==> \033[1;37mPurge the database\033[0m"
+	su postgres -c "dropdb opennms"
+fi
+
+# Copy and link directories
+echo -e "\033[0;37m==> \033[1;37mCopy build to target\033[0m"
+cp --recursive --reflink=auto -t "${TARGET}" "${SOURCE}/etc"
+cp --recursive --reflink=auto -t "${TARGET}" "${SOURCE}/data"
+cp --recursive --reflink=auto -t "${TARGET}" "${SOURCE}/share"
+cp --recursive --reflink=auto -t "${TARGET}" "${SOURCE}/logs"
+
+ln --symbolic -t "${TARGET}" "${SOURCE}/bin"
+ln --symbolic -t "${TARGET}" "${SOURCE}/contrib"
+ln --symbolic -t "${TARGET}" "${SOURCE}/docs"
+ln --symbolic -t "${TARGET}" "${SOURCE}/jetty-webapps"
+ln --symbolic -t "${TARGET}" "${SOURCE}/lib"
+ln --symbolic -t "${TARGET}" "${SOURCE}/deploy"
+ln --symbolic -t "${TARGET}" "${SOURCE}/system"
+
+# Copy configuration
+echo -e "\033[0;37m==> \033[1;37mCopy configuration template to target\033[0m"
+rsync --recursive "${TARGET}.template/" "${TARGET}"
+
+# Create database
+if [[ "${PURGE}" == 'yes' ]]; then
+	echo -e "\033[0;37m==> \033[1;37mCreate database\033[0m"
+	su postgres -c "createdb -O opennms opennms"
+fi
+
+# Configure java
+echo -e "\033[0;37m==> \033[1;37mConfigure Java version\033[0m"
+${TARGET}/bin/runjava \
+	-s
+
+# Run installation / update
+echo -e "\033[0;37m==> \033[1;37mConfigure OpenNMS instance\033[0m"
+${TARGET}/bin/install \
+	-d \
+	-i \
+	-s \
+	-l "$(realpath "$(dirname "${0}")/jicmp/.libs"):$(realpath "$(dirname "${0}")/jicmp6/.libs")"
+
+# Start target
+if [[ "${DEBUG}" == 'yes' ]]; then
+	echo -e "\033[0;37m==> \033[1;37mStart OpenNMS instance in debug mode\033[0m"
+	${TARGET}/bin/opennms -v -t start
+else
+	echo -e "\033[0;37m==> \033[1;37mStart OpenNMS instance\033[0m"
+	${TARGET}/bin/opennms -v start
+fi
+
+# Open browser window
+sudo -u "${SUDO_USER}" xdg-open "http://localhost:8980/opennms"
