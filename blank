@@ -3,5 +3,5 @@
 # Wait a litte bit to get a change to release the key
 sleep 0.5s
 
-# Blank the screen
-xset dpms force off
+# Activate the screen saver
+xset s activate

@@ -1,3 +1,9 @@
 #! /bin/bash
 
-/usr/bin/i3lock -c 000000
+# Lock the screen
+/usr/bin/i3lock \
+	--nofork \
+	--dpms \
+	--color=000000 \
+	--ignore-empty-password \
+	--show-failed-attempts
