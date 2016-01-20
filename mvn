@@ -1,0 +1,18 @@
+#! /bin/zsh
+
+autoload -U colors && colors
+
+command -p mvn "$@" \
+    | sed -r \
+        -e "s/(-----*)/${fg_bold[white]}\1${reset_color}/g" \
+        -e "s/(---)(.*)(---)$/${fg[cyan]}\1${reset_color}${fg_bold[cyan]}\2${reset_color}${fg[cyan]}\3${reset_color}/g" \
+        -e "s/^(\[INFO\]) (.*)/${fg_bold[white]}[I]${reset_color} \2/g" \
+        -e "s/^(\[WARNING\]) (.*)/${fg_bold[yellow]}[W]${reset_color}${fg[yellow]} \2${reset_color}/g" \
+        -e "s/^(\[ERROR\]) (.*)/${fg_bold[red]}[E]${reset_color}${fg[red]} \2${reset_color}/g" \
+        -e "s/((BUILD )?SUCCESS)/${fg_bold[green]}\1${reset_color}/g" \
+        -e "s/((BUILD )?FAILURE)/${fg_bold[red]}\1${reset_color}/g" \
+        -e "s/ (\.+) / ${fg_bold[black]}\1${reset_color} /g" \
+        -e "s/Tests run: ([^,]*), Failures: ([^,]*), Errors: ([^,]*), Skipped: ([^,]*)/Tests run: ${fg_bold[white]}\1${reset_color}, Failures: ${fg_bold[red]}\2${reset_color}, Errors: ${fg_bold[yellow]}\3${reset_color}, Skipped: ${fg_bold[blue]}\4${reset_color}/g"
+
+exit $PIPESTATUS
+
