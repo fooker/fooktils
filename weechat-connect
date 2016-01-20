@@ -5,7 +5,7 @@ SSH_USER="weechat"
 
 SCREEN_SESSION="weechat"
 
-mosh "${SSH_USER}@${SSH_HOST}" \
+mosh "${SSH_USER}@${SSH_HOST}" -- \
 	screen \
 		-A \
 		-x \
