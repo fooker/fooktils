@@ -1,10 +1,14 @@
 #! /bin/bash -e
 
 # Parse arguments
-while getopts 'dxh' OPTFLAG; do
+while getopts 'xXdh' OPTFLAG; do
 	case "${OPTFLAG}" in
 		'x')
 			PURGE='yes'
+			;;
+
+		'X')
+			CLEAN='yes'
 			;;
 
 		'd')
@@ -17,8 +21,11 @@ while getopts 'dxh' OPTFLAG; do
 				Deploy the opennms build from the current source tree to the system.
 
 				    -h      Display this help and exit
+				    -X      Clean the source before build
 				    -x      Purge the the database before deployment
+				    -d      Start opennms in debug mode
 			EOF
+			exit 254
 	esac
 done
 
@@ -27,8 +34,9 @@ if [[ "${USER}" != "root" ]]; then
 	exec sudo "${0}" "${*}"
 fi
 
-[[ "${PURGE}" == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mPurge database before installation\033[0m"
-[[ "${DEBUG}" == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mEnable debug port\033[0m"
+[[ "${CLEAN}"   == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mClean the source before build\033[0m"
+[[ "${PURGE}"   == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mPurge database before installation\033[0m"
+[[ "${DEBUG}"   == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mEnable debug port\033[0m"
 # Define the target
 TARGET=/opt/opennms
 
@@ -37,7 +45,7 @@ SOURCE=$(find . \
 	-maxdepth 2 \
 	-type d \
 	-path "./target/opennms-*")
-if [[ -z "${SOURCE}" ]]; then
+if [[ -z "${SOURCE}" ]] || [[ $(wc -l <<< "${SOURCE}") -ne 1 ]]; then
 	echo -e "\033[0;31mNo valid opennms target found\033[0m" >&2
 	exit 1
 fi
@@ -53,8 +61,19 @@ if [[ -x "${TARGET}/bin/opennms" && -f "${TARGET}/etc/configured" ]]; then
 	${TARGET}/bin/opennms -v stop
 fi
 
+# Clean the source tree
+if [[ "${CLEAN}" == 'yes' ]]; then
+	echo -e "\033[0;37m==> \033[1;37mClean the source\033[0m"
+	sudo -u "${SUDO_USER}" ./clean.pl
+fi
+
+# Build the source tree
+echo -e "\033[0;37m==> \033[1;37mBuild the source\033[0m"
+sudo -u "${SUDO_USER}" ./compile.pl -DskipTests
+sudo -u "${SUDO_USER}" ./assemble.pl -Dopennms.home=/opt/opennms -pdir
+
 # Clean existing deployment
-echo -e "\033[0;37m==> \033[1;37mCleane existing deployment\033[0m"
+echo -e "\033[0;37m==> \033[1;37mClean existing deployment\033[0m"
 find "${TARGET}" \
 	-depth \
 	-mindepth 1 \
