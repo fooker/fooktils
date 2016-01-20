@@ -1,0 +1,13 @@
+#! /bin/bash
+
+SSH_HOST="brueckenkopf.dev.open-desk.net"
+SSH_USER="weechat"
+
+SCREEN_SESSION="weechat"
+
+mosh "${SSH_USER}@${SSH_HOST}" \
+	screen \
+		-A \
+		-x \
+		"${SCREEN_SESSION}"
+
