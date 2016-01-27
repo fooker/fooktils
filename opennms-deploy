@@ -143,5 +143,10 @@ else
 	${TARGET}/bin/opennms -v start
 fi
 
+# Enable OSGi reloading
+sshpass -p admin \
+	ssh opennms \
+	dev:watch '*'
+
 # Open browser window
 sudo -u "${SUDO_USER}" xdg-open "http://localhost:8980/opennms"
