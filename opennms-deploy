@@ -3,12 +3,17 @@
 # Parse arguments
 while getopts 'xXdh' OPTFLAG; do
 	case "${OPTFLAG}" in
-		'x')
-			PURGE='yes'
+		'b')
+			BUILD='yes'
 			;;
 
-		'X')
+		'B')
+			BUILD='yes'
 			CLEAN='yes'
+			;;
+
+		'x')
+			PURGE='yes'
 			;;
 
 		'd')
@@ -21,7 +26,8 @@ while getopts 'xXdh' OPTFLAG; do
 				Deploy the opennms build from the current source tree to the system.
 
 				    -h      Display this help and exit
-				    -X      Clean the source before build
+				    -b      Build the source
+				    -B      Clean the source before build (implies -b)
 				    -x      Purge the the database before deployment
 				    -d      Start opennms in debug mode
 			EOF
@@ -34,9 +40,12 @@ if [[ "${USER}" != "root" ]]; then
 	exec sudo "${0}" "${*}"
 fi
 
+# Configuration output
+[[ "${BUILD}"   == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mBuild the source\033[0m"
 [[ "${CLEAN}"   == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mClean the source before build\033[0m"
 [[ "${PURGE}"   == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mPurge database before installation\033[0m"
 [[ "${DEBUG}"   == 'yes' ]] && echo -e "\033[0;35m: \033[1;35mEnable debug port\033[0m"
+
 # Define the target
 TARGET=/opt/opennms
 
@@ -68,9 +77,11 @@ if [[ "${CLEAN}" == 'yes' ]]; then
 fi
 
 # Build the source tree
-echo -e "\033[0;37m==> \033[1;37mBuild the source\033[0m"
-sudo -u "${SUDO_USER}" ./compile.pl -DskipTests
-sudo -u "${SUDO_USER}" ./assemble.pl -Dopennms.home=/opt/opennms -pdir
+if [[ "${BUILD}" == 'yes' ]]; then
+	echo -e "\033[0;37m==> \033[1;37mBuild the source\033[0m"
+	sudo -u "${SUDO_USER}" ./compile.pl -DskipTests
+	sudo -u "${SUDO_USER}" ./assemble.pl -Dopennms.home=/opt/opennms -pdir
+fi
 
 # Clean existing deployment
 echo -e "\033[0;37m==> \033[1;37mClean existing deployment\033[0m"
