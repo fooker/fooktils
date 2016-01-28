@@ -37,7 +37,7 @@ done
 
 # Ensure we are running as root
 if [[ "${USER}" != "root" ]]; then
-	exec sudo "${0}" "${*}"
+	exec sudo "${0}" "${@}"
 fi
 
 # Configuration output
