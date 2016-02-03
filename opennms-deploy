@@ -144,9 +144,12 @@ else
 fi
 
 # Enable OSGi reloading
-sshpass -p admin \
+sudo -u "${SUDO_USER}" \
+	sshpass -p admin \
 	ssh opennms \
 	dev:watch '*'
 
 # Open browser window
-sudo -u "${SUDO_USER}" xdg-open "http://localhost:8980/opennms"
+sudo -u "${SUDO_USER}" \
+	xdg-open "http://localhost:8980/opennms"
+
