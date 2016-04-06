@@ -1,6 +1,6 @@
 #! /bin/bash
 
-SSH_HOST="brueckenkopf.dev.open-desk.net"
+SSH_HOST="weechat.open-desk.net"
 SSH_USER="weechat"
 
 SCREEN_SESSION="weechat"
