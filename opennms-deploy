@@ -49,21 +49,6 @@ fi
 # Define the target
 TARGET=/opt/opennms
 
-# Check if we have a valid source
-SOURCE=$(find . \
-	-maxdepth 2 \
-	-type d \
-	-path "./target/opennms-*")
-if [[ -z "${SOURCE}" ]] || [[ $(wc -l <<< "${SOURCE}") -ne 1 ]]; then
-	echo -e "\033[0;31mNo valid opennms target found\033[0m" >&2
-	exit 1
-fi
-
-# Make the source path absolute
-SOURCE="$(realpath "${SOURCE}")"
-
-echo -e "\033[0;35m====> \033[1;37mDeploying OpenNMS from '\033[1;34m${SOURCE}\033[1;37m' to '\033[1;34m${TARGET}\033[1;37m'\033[0m"
-
 # Try to stop existing target if not empty
 if [[ -x "${TARGET}/bin/opennms" && -f "${TARGET}/etc/configured" ]]; then
 	echo -e "\033[0;37m==> \033[1;37mStop existing OpenNMS instance\033[0m"
@@ -79,8 +64,8 @@ fi
 # Build the source tree
 if [[ "${BUILD}" == 'yes' ]]; then
 	echo -e "\033[0;37m==> \033[1;37mBuild the source\033[0m"
-	sudo -u "${SUDO_USER}" ./compile.pl -DskipTests
-	sudo -u "${SUDO_USER}" ./assemble.pl -Dopennms.home=/opt/opennms -pdir
+	sudo -u "${SUDO_USER}" ./compile.pl -DskipTests -DskipITs
+	sudo -u "${SUDO_USER}" ./assemble.pl -DskipTests -DskipITs -Dopennms.home=/opt/opennms -pdir
 fi
 
 # Clean existing deployment
@@ -95,6 +80,19 @@ if [[ "${PURGE}" == 'yes' ]]; then
 	echo -e "\033[0;37m==> \033[1;37mPurge the database\033[0m"
 	su postgres -c "dropdb opennms"
 fi
+
+# Check if we have a valid source
+SOURCE=$(find . \
+	-maxdepth 2 \
+	-type d \
+	-path "./target/opennms-*")
+if [[ -z "${SOURCE}" ]] || [[ $(wc -l <<< "${SOURCE}") -ne 1 ]]; then
+	echo -e "\033[0;31mNo valid opennms target found\033[0m" >&2
+	exit 1
+fi
+
+# Make the source path absolute
+SOURCE="$(realpath "${SOURCE}")"
 
 # Copy and link directories
 echo -e "\033[0;37m==> \033[1;37mCopy build to target\033[0m"
