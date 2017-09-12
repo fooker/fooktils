@@ -2,42 +2,42 @@
 
 # Parse arguments
 while getopts 'bBxdh' OPTFLAG; do
-	case "${OPTFLAG}" in
-		'b')
-			BUILD='yes'
-			;;
+    case "${OPTFLAG}" in
+    'b')
+        BUILD='yes'
+        ;;
 
-		'B')
-			BUILD='yes'
-			CLEAN='yes'
-			;;
+    'B')
+        BUILD='yes'
+        CLEAN='yes'
+        ;;
 
-		'x')
-			PURGE='yes'
-			;;
+    'x')
+        PURGE='yes'
+        ;;
 
-		'd')
-			DEBUG='yes'
-			;;
+    'd')
+        DEBUG='yes'
+        ;;
 
-		*)
-			cat <<- EOF
-				Usage: ${0##*/} [-x]
-				Deploy the opennms build from the current source tree to the system.
+    *)
+        cat <<- EOF
+            Usage: ${0##*/} [-x]
+            Deploy the opennms build from the current source tree to the system.
 
-				    -h      Display this help and exit
-				    -b      Build the source
-				    -B      Clean the source before build (implies -b)
-				    -x      Purge the the database before deployment
-				    -d      Start opennms in debug mode
-			EOF
-			exit 254
-	esac
+                -h      Display this help and exit
+                -b      Build the source
+                -B      Clean the source before build (implies -b)
+                -x      Purge the the database before deployment
+                -d      Start opennms in debug mode
+EOF
+        exit 254
+    esac
 done
 
 # Ensure we are running as root
 if [[ "${USER}" != "root" ]]; then
-	exec sudo "${0}" "${@}"
+    exec sudo "${0}" "${@}"
 fi
 
 # Configuration output
@@ -51,44 +51,44 @@ TARGET=/opt/opennms
 
 # Try to stop existing target if not empty
 if [[ -x "${TARGET}/bin/opennms" && -f "${TARGET}/etc/configured" ]]; then
-	echo -e "\033[0;37m==> \033[1;37mStop existing OpenNMS instance\033[0m"
-	${TARGET}/bin/opennms -v stop
+    echo -e "\033[0;37m==> \033[1;37mStop existing OpenNMS instance\033[0m"
+    ${TARGET}/bin/opennms -v stop
 fi
 
 # Clean the source tree
 if [[ "${CLEAN}" == 'yes' ]]; then
-	echo -e "\033[0;37m==> \033[1;37mClean the source\033[0m"
-	sudo -u "${SUDO_USER}" ./clean.pl
+    echo -e "\033[0;37m==> \033[1;37mClean the source\033[0m"
+    sudo -u "${SUDO_USER}" ./clean.pl
 fi
 
 # Build the source tree
 if [[ "${BUILD}" == 'yes' ]]; then
-	echo -e "\033[0;37m==> \033[1;37mBuild the source\033[0m"
-	sudo -u "${SUDO_USER}" ./compile.pl -DskipTests -DskipITs
-	sudo -u "${SUDO_USER}" ./assemble.pl -DskipTests -DskipITs -Dopennms.home=/opt/opennms -pdir
+    echo -e "\033[0;37m==> \033[1;37mBuild the source\033[0m"
+    sudo -u "${SUDO_USER}" ./compile.pl -DskipTests -DskipITs
+    sudo -u "${SUDO_USER}" ./assemble.pl -DskipTests -DskipITs -Dopennms.home=/opt/opennms -pdir
 fi
 
 # Clean existing deployment
 echo -e "\033[0;37m==> \033[1;37mClean existing deployment\033[0m"
 find "${TARGET}" \
-	-depth \
-	-mindepth 1 \
-	-delete
+    -depth \
+    -mindepth 1 \
+    -delete
 
 # Purge the database
 if [[ "${PURGE}" == 'yes' ]]; then
-	echo -e "\033[0;37m==> \033[1;37mPurge the database\033[0m"
-	su postgres -c "dropdb opennms"
+    echo -e "\033[0;37m==> \033[1;37mPurge the database\033[0m"
+    su postgres -c "dropdb opennms"
 fi
 
 # Check if we have a valid source
 SOURCE=$(find . \
-	-maxdepth 2 \
-	-type d \
-	-path "./target/opennms-*")
+    -maxdepth 2 \
+    -type d \
+    -path "./target/opennms-*")
 if [[ -z "${SOURCE}" ]] || [[ $(wc -l <<< "${SOURCE}") -ne 1 ]]; then
-	echo -e "\033[0;31mNo valid opennms target found\033[0m" >&2
-	exit 1
+    echo -e "\033[0;31mNo valid opennms target found\033[0m" >&2
+    exit 1
 fi
 
 # Make the source path absolute
@@ -115,39 +115,47 @@ rsync --recursive "${TARGET}.template/" "${TARGET}"
 
 # Create database
 if [[ "${PURGE}" == 'yes' ]]; then
-	echo -e "\033[0;37m==> \033[1;37mCreate database\033[0m"
-	su postgres -c "createdb -O opennms opennms"
+    echo -e "\033[0;37m==> \033[1;37mCreate database\033[0m"
+    su postgres -c "createdb -O opennms opennms"
 fi
 
 # Configure java
 echo -e "\033[0;37m==> \033[1;37mConfigure Java version\033[0m"
 ${TARGET}/bin/runjava \
-	-s
+    -s
 
 # Run installation / update
 echo -e "\033[0;37m==> \033[1;37mConfigure OpenNMS instance\033[0m"
 ${TARGET}/bin/install \
-	-d \
-	-i \
-	-s \
-	-l "$(realpath "$(dirname "${0}")/jicmp/.libs"):$(realpath "$(dirname "${0}")/jicmp6/.libs")"
+    -d \
+    -i \
+    -s \
+#    -l "$(realpath "$(dirname "${0}")/jicmp/.libs"):$(realpath "$(dirname "${0}")/jicmp6/.libs")"
 
 # Start target
 if [[ "${DEBUG}" == 'yes' ]]; then
-	echo -e "\033[0;37m==> \033[1;37mStart OpenNMS instance in debug mode\033[0m"
-	${TARGET}/bin/opennms -v -t start
+    echo -e "\033[0;37m==> \033[1;37mStart OpenNMS instance in debug mode\033[0m"
+    ${TARGET}/bin/opennms -v -t start
 else
-	echo -e "\033[0;37m==> \033[1;37mStart OpenNMS instance\033[0m"
-	${TARGET}/bin/opennms -v start
+    echo -e "\033[0;37m==> \033[1;37mStart OpenNMS instance\033[0m"
+    ${TARGET}/bin/opennms -v start
 fi
 
-# Enable OSGi reloading
+# Wait for OSGi manhole to bekome available and enable module reloading
+while ! nc -z localhost 8101; do sleep 0.1; done
 sudo -u "${SUDO_USER}" \
-	sshpass -p admin \
-	ssh opennms \
-	dev:watch '*'
+    sshpass -p admin \
+    ssh \
+        -l admin \
+        -p 8101 \
+        -o "StrictHostKeyChecking no" \
+        -o "NoHostAuthenticationForLocalhost yes" \
+        -o "HostKeyAlgorithms +ssh-dss" \
+        localhost \
+    dev:watch '*'
 
 # Open browser window
 sudo -u "${SUDO_USER}" \
-	xdg-open "http://localhost:8980/opennms"
+    xdg-open "http://localhost:8980/opennms" \
+    &
 
