@@ -1,9 +1,0 @@
-#! /bin/bash
-
-# Lock the screen
-/usr/bin/i3lock \
-	--nofork \
-	--dpms \
-	--color=000000 \
-	--ignore-empty-password \
-	--show-failed-attempts
