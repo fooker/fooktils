@@ -130,7 +130,7 @@ ${TARGET}/bin/install \
     -d \
     -i \
     -s \
-#    -l "$(realpath "$(dirname "${0}")/jicmp/.libs"):$(realpath "$(dirname "${0}")/jicmp6/.libs")"
+    -l "$(realpath "$(dirname "${0}")/jicmp/.libs"):$(realpath "$(dirname "${0}")/jicmp6/.libs"):$(realpath "$(dirname "${0}")/jrrd2/dist")"
 
 # Start target
 if [[ "${DEBUG}" == 'yes' ]]; then
@@ -142,7 +142,7 @@ else
 fi
 
 # Wait for OSGi manhole to bekome available and enable module reloading
-while ! nc -z localhost 8101; do sleep 0.1; done
+while ! nc -z localhost 8101; do echo -n '.'; sleep 0.1; done
 sudo -u "${SUDO_USER}" \
     sshpass -p admin \
     ssh \
@@ -152,7 +152,7 @@ sudo -u "${SUDO_USER}" \
         -o "NoHostAuthenticationForLocalhost yes" \
         -o "HostKeyAlgorithms +ssh-dss" \
         localhost \
-    dev:watch '*'
+    bundle:watch '*'
 
 # Open browser window
 sudo -u "${SUDO_USER}" \
